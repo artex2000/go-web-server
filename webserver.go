@@ -11,6 +11,7 @@ func main() {
     http.HandleFunc("/", handler)
     http.HandleFunc("/gif", gifer)
     http.HandleFunc("/svg", svger)
+    http.HandleFunc("/png", pnger)
     log.Fatal(http.ListenAndServe("localhost:8000", nil))
 }
 
@@ -57,4 +58,8 @@ func svger(w http.ResponseWriter, r *http.Request) {
     } else {
         drawSvg(w, v[0])
     }
+}
+
+func pnger(w http.ResponseWriter, r *http.Request) {
+    drawPng(w)
 }

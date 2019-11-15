@@ -14,7 +14,7 @@ const (
 )
 
 var sin30, cos30 = math.Sin(angle), math.Cos(angle)
-var minf, maxf = math.MaxFloat64, math.SmallestNonzeroFloat64
+var minf, maxf float64
 
 type f3d func(float64, float64) float64
 type polygon struct {
@@ -36,6 +36,7 @@ var plot3dlist = map[string]*plot3d {
 func drawSvg(out io.Writer, plot string) {
     var f *plot3d
     var ok bool
+    minf, maxf = math.MaxFloat64, math.SmallestNonzeroFloat64
 
     if f, ok = plot3dlist[plot]; !ok {
         f = plot3dlist["sin"]
