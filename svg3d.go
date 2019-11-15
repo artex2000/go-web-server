@@ -8,7 +8,7 @@ import (
 )
 
 const (
-    width, height = 800, 600
+    width, height = 1600, 1000
     cells = 100
     angle = math.Pi / 6
 )
@@ -30,7 +30,13 @@ type plot3d struct {
 
 var plot3dlist = map[string]*plot3d {
     "sin" : &plot3d{ sin3d, 30.0, 0.4 },
-    "hyp" : &plot3d{ hyp3d, 3.0, 0.05 },
+    "hyp" : &plot3d{ hyp3d, 6.0, 0.15 },
+    "exp" : &plot3d{ exp3d, 3.0, 0.3 },
+    "log" : &plot3d{ log3d, 8.0, 0.01 },
+    "bum" : &plot3d{ bum3d, 2.0, 1.0 },
+    "cub" : &plot3d{ cub3d, 2.0, 0.7 },
+    "exe" : &plot3d{ exe3d, 2.0, 0.7 },
+    "exc" : &plot3d{ exc3d, 3.0, 0.0008 },
 }
 
 func drawSvg(out io.Writer, plot string) {
@@ -125,5 +131,30 @@ func sin3d(x, y float64) float64 {
 }
 
 func hyp3d(x, y float64) float64 {
-    return y*y - x*x
+    return x*x/7 - y*y/7 
+}
+
+func exp3d(x, y float64) float64 {
+    return 0.75 / math.Exp(x*x*y*y*81) 
+}
+
+func log3d(x, y float64) float64 {
+    return 0.7 / (math.Log(x*x + y*y) + 0.6) 
+}
+
+func bum3d(x, y float64) float64 {
+    return math.Sin(x*5) * math.Cos(y*5) / 5 
+}
+
+func cub3d(x, y float64) float64 {
+    return x*y*y*y - y*x*x*x;
+}
+
+func exe3d(x, y float64) float64 {
+    r := x*x + y*y
+    return (x*x + 3*y*y) * math.Exp(-r) - 0.5
+}
+
+func exc3d(x, y float64) float64 {
+    return math.Floor(math.Exp(math.Abs(x*y/2))) + math.Round(1/math.Cos(x*y))-2
 }
