@@ -8,6 +8,7 @@ import (
     "io"
     "encoding/binary"
     "log"
+    "math"
 )
 
 type Glyph struct {
@@ -20,6 +21,8 @@ type Glyph struct {
 }
 
 var glyph Glyph
+var bg = color.NRGBA { R: 30, G: 50, B: 100, A: 255 }
+var fg = color.NRGBA { R: 70, G: 90, B: 200, A: 255 }
 
 func drawPng(out io.Writer) {
     const width, height = 800, 600
@@ -27,12 +30,7 @@ func drawPng(out io.Writer) {
 
     for y := 0; y < height; y++ {
         for x := 0; x < width; x++ {
-            img.Set(x, y, color.NRGBA {
-                            R: 255,
-                            G: 255,
-                            B: 255,
-                            A: 255,
-                        })
+            img.Set(x, y, bg)
         }
     }
 
@@ -41,17 +39,64 @@ func drawPng(out io.Writer) {
     idx := 0
     for y := 0; y < int(glyph.height); y++ {
         for x := 0; x < int(glyph.width); x++ {
-            img.Set(x+off_x, y+off_y, color.NRGBA {
-                            R: 0,
-                            G: 0,
-                            B: 0,
-                            A: glyph.data[idx],
-                        })
+            img.Set(x+off_x, y+off_y, blend(fg, bg, glyph.data[idx]))
             idx++
         }
     }
 
     png.Encode(out, img)
+}
+
+func rgb2linear(c uint8) float64 {
+    if (c == 0) {
+        return 0
+    } else if (c == 255) {
+        return 1
+    }
+
+    cf := float64(c / 255.0)
+    if (cf < 0.04045) {
+        return cf / 12.92
+    } else {
+        return math.Pow((cf + 0.055) / 1.055, 2.4)
+    }
+}
+
+func linear2rgb(f float64) uint8 {
+    if (f <= 0.0) {
+        return 0
+    } else if (f >= 1.0) {
+        return 255
+    }
+
+    if (f < 0.0031308) {
+        f = f * 12.92
+    } else {
+        f = math.Pow(f, 1.0 / 2.4) * 1.055 - 0.055
+    }
+
+    return uint8(255*f)
+}
+
+
+func blend(src, dst color.NRGBA, alpha uint8) color.NRGBA {
+    sr := rgb2linear(src.R)
+    sg := rgb2linear(src.G)
+    sb := rgb2linear(src.B)
+    dr := rgb2linear(src.R)
+    dg := rgb2linear(src.G)
+    db := rgb2linear(src.B)
+    a := float64(alpha / 255.0)
+
+    rr := sr * a + dr * (1 - a)
+    rg := sg * a + dg * (1 - a)
+    rb := sb * a + db * (1 - a)
+
+    return color.NRGBA {
+        R: linear2rgb(rr),
+        G: linear2rgb(rg),
+        B: linear2rgb(rb),
+        A: 255 }
 }
 
 func init() {
