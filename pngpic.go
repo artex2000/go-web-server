@@ -48,45 +48,27 @@ func drawPng(out io.Writer) {
 }
 
 func rgb2linear(c uint8) float64 {
-    if (c == 0) {
-        return 0
-    } else if (c == 255) {
-        return 1
-    }
-
-    cf := float64(c / 255.0)
-    if (cf < 0.04045) {
-        return cf / 12.92
-    } else {
-        return math.Pow((cf + 0.055) / 1.055, 2.4)
-    }
+    inv255 := 1.0 / 255.0
+    r := float64(c) * inv255
+    return r * r
 }
 
 func linear2rgb(f float64) uint8 {
-    if (f <= 0.0) {
-        return 0
-    } else if (f >= 1.0) {
-        return 255
-    }
-
-    if (f < 0.0031308) {
-        f = f * 12.92
-    } else {
-        f = math.Pow(f, 1.0 / 2.4) * 1.055 - 0.055
-    }
-
-    return uint8(255*f)
+    r := math.Sqrt(f)
+    r *= 255.0
+    return uint8(r + 0.5)
 }
 
 
 func blend(src, dst color.NRGBA, alpha uint8) color.NRGBA {
+    inv255 := 1.0 / 255.0
     sr := rgb2linear(src.R)
     sg := rgb2linear(src.G)
     sb := rgb2linear(src.B)
-    dr := rgb2linear(src.R)
-    dg := rgb2linear(src.G)
-    db := rgb2linear(src.B)
-    a := float64(alpha / 255.0)
+    dr := rgb2linear(dst.R)
+    dg := rgb2linear(dst.G)
+    db := rgb2linear(dst.B)
+    a := float64(alpha) * inv255
 
     rr := sr * a + dr * (1 - a)
     rg := sg * a + dg * (1 - a)
